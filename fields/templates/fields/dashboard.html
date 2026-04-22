@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SmartSeason Dashboard</title>
+    <style>
+        .card { border: 1px solid #ccc; padding: 10px; margin: 10px; border-radius: 8px; }
+        .status-at-risk { color: red; font-weight: bold; }
+        .status-active { color: green; }
+    </style>
+</head>
+<body>
+    <h1>{% if is_admin %}Coordinator Overview{% else %}My Assigned Fields{% endif %}</h1>
+    
+    <div>
+        <p>Total Fields: {{ total_fields }}</p>
+        <p>At Risk: {{ at_risk_count }}</p>
+    </div>
+
+    <hr>
+
+    {% for field in fields %}
+    <div class="card">
+        <h3>{{ field.name }} ({{ field.crop_type }})</h3>
+        <p>Stage: {{ field.get_current_stage_display }}</p>
+        <p>Status: <span class="status-{{ field.field_status|lower|cut:' ' }}">{{ field.field_status }}</span></p>
+        <p>Notes: {{ field.notes|default:"No observations yet." }}</p>
+    </div>
+    {% empty %}
+    <p>No fields found.</p>
+    {% endfor %}
+</body>
+</html>
