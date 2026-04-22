@@ -1,0 +1,29 @@
+<div class="card" id="field-{{ field.id }}">
+    <h3>{{ field.name }} ({{ field.crop_type }})</h3>
+    
+    <p>
+        <strong>Stage:</strong>
+        <select name="current_stage" 
+                hx-post="{% url 'update_field_status' field.id %}" 
+                hx-trigger="change" 
+                hx-target="#field-{{ field.id }}" 
+                hx-swap="outerHTML">
+            <option value="PLANTED" {% if field.current_stage == 'PLANTED' %}selected{% endif %}>Planted</option>
+            <option value="GROWING" {% if field.current_stage == 'GROWING' %}selected{% endif %}>Growing</option>
+            <option value="READY" {% if field.current_stage == 'READY' %}selected{% endif %}>Ready</option>
+            <option value="HARVESTED" {% if field.current_stage == 'HARVESTED' %}selected{% endif %}>Harvested</option>
+        </select>
+    </p>
+
+    <p>Status: <span class="status-{{ field.field_status|lower|cut:' ' }}">{{ field.field_status }}</span></p>
+    
+    <p>Notes: {{ field.notes|default:"No observations yet." }}</p>
+    <div id="notes-section-{{ field.id }}">
+    <p><strong>Observations:</strong> {{ field.notes|default:"No notes yet." }}</p>
+    <button hx-get="{% url 'edit_notes' field.id %}" 
+            hx-target="#notes-section-{{ field.id }}" 
+            hx-swap="outerHTML">
+        Edit Notes
+    </button>
+</div>
+</div>

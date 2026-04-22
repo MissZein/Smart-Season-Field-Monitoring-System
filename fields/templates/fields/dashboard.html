@@ -1,32 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <title>SmartSeason Dashboard</title>
     <style>
-        .card { border: 1px solid #ccc; padding: 10px; margin: 10px; border-radius: 8px; }
-        .status-at-risk { color: red; font-weight: bold; }
-        .status-active { color: green; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .card { border: 1px solid #ddd; padding: 20px; margin: 15px 0; border-radius: 12px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .status-active { 
+    color: #2e7d32; 
+    font-weight: bold; 
+    background: #e8f5e9; 
+    padding: 4px 10px; 
+    border-radius: 4px; 
+}
+
+/* This covers "At Risk" (The 'cut' filter in Django removes spaces) */
+.status-atrisk { 
+    color: #d32f2f; 
+    font-weight: bold; 
+    background: #ffebee; 
+    padding: 4px 10px; 
+    border-radius: 4px; 
+    animation: blink 2s infinite; 
+}
+        
+        @keyframes blink { 50% { opacity: 0.5; } }
+        
+        nav { background: #1a73e8; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        nav a, nav button { color: white; text-decoration: none; background: none; border: 1px solid white; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
+        
+        textarea { width: 100%; margin: 10px 0; padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit; }
+        .btn-edit { background: #f0f0f0; border: 1px solid #ccc; padding: 5px 12px; border-radius: 4px; font-size: 0.9em; transition: 0.2s; }
+        .btn-edit:hover { background: #e0e0e0; }
+        .btn-save { background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <h1>{% if is_admin %}Coordinator Overview{% else %}My Assigned Fields{% endif %}</h1>
-    
-    <div>
-        <p>Total Fields: {{ total_fields }}</p>
-        <p>At Risk: {{ at_risk_count }}</p>
-    </div>
+    <nav>
+        <div>
+            <strong>SmartSeason</strong> | {{ user.username }} 
+            ({% if is_admin %}Coordinator{% else %}Field Agent{% endif %})
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </div>
+    </nav>
 
-    <hr>
+    <div class="container">
+        <script>
+            document.body.addEventListener('htmx:configRequest', (event) => {
+                event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            });
+        </script>
 
-    {% for field in fields %}
-    <div class="card">
-        <h3>{{ field.name }} ({{ field.crop_type }})</h3>
-        <p>Stage: {{ field.get_current_stage_display }}</p>
-        <p>Status: <span class="status-{{ field.field_status|lower|cut:' ' }}">{{ field.field_status }}</span></p>
-        <p>Notes: {{ field.notes|default:"No observations yet." }}</p>
+        <h1>{% if is_admin %}Coordinator Overview{% else %}My Assigned Fields{% endif %}</h1>
+        
+        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; flex: 1;">
+                <strong>Total Fields:</strong> {{ total_fields }}
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd; flex: 1;">
+                <strong>At Risk:</strong> {{ at_risk_count }}
+            </div>
+        </div>
+
+        <hr>
+
+        {% for field in fields %}
+            <div class="card" id="field-{{ field.id }}">
+                <h3>{{ field.name }} ({{ field.crop_type }})</h3>
+                
+                <p>
+                    <strong>Stage:</strong>
+                    <select name="current_stage" 
+                            hx-post="{% url 'update_field_status' field.id %}" 
+                            hx-trigger="change" 
+                            hx-target="#field-{{ field.id }}" 
+                            hx-swap="outerHTML">
+                        {% for value, label in field.STAGE_CHOICES %}
+                            <option value="{{ value }}" {% if field.current_stage == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </p>
+
+                <p>Status: <span class="status-{{ field.field_status|lower|cut:' ' }}">{{ field.field_status }}</span></p>
+                
+                <div id="notes-section-{{ field.id }}">
+                    <p><strong>Observations:</strong> {{ field.notes|default:"No observations recorded." }}</p>
+                    <button class="btn-edit" 
+                            hx-get="{% url 'edit_notes' field.id %}" 
+                            hx-target="#notes-section-{{ field.id }}" 
+                            hx-swap="outerHTML">
+                        Edit Notes
+                    </button>
+                </div>
+                </div>
+        {% empty %}
+            <p>No fields found.</p>
+        {% endfor %}
     </div>
-    {% empty %}
-    <p>No fields found.</p>
-    {% endfor %}
 </body>
 </html>
