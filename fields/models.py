@@ -18,7 +18,8 @@ class Field(models.Model):
     current_stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='PLANTED')
     
     # Access & Management [cite: 10, 18]
-    assigned_agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_fields') 
+    # Add null=True and blank=True
+    assigned_agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) 
     notes = models.TextField(blank=True, null=True) 
     updated_at = models.DateTimeField(auto_now=True)
 
