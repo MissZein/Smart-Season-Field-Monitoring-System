@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db.models import Q
 
 @login_required
 def update_field_status(request, pk):
@@ -25,6 +26,8 @@ def update_field_status(request, pk):
     return HttpResponse("Unauthorized", status=403)
 @login_required
 def dashboard(request):
+    search_query = request.GET.get('search', '')
+    is_admin = request.user.is_superuser or request.user.is_staff
     user = request.user
     is_admin = user.groups.filter(name='Admins').exists() or user.is_superuser
 
@@ -35,6 +38,13 @@ def dashboard(request):
     else:
         fields = Field.objects.filter(assigned_agent=request.user)
         all_agents = None
+        # Apply Search Filter
+    if search_query:
+        fields = fields.filter(
+            Q(name__icontains=search_query) | 
+            Q(crop_type__icontains=search_query) |
+            Q(assigned_agent__username__icontains=search_query)
+        )
 
     # Simple summaries for the dashboard [cite: 50, 52]
     context = {
@@ -44,6 +54,11 @@ def dashboard(request):
         'is_admin': is_admin,
         'all_agents': all_agents,
     }
+
+    # IF this is an HTMX request, only return the table rows partial
+    if request.headers.get('HX-Request') == 'true':
+        return render(request, 'fields/partials/field_rows.html', context)
+
     return render(request, 'fields/dashboard.html', context)
 # 1. This view returns the HTML for the input box
 @login_required

@@ -1,0 +1,39 @@
+{% for field in fields %}
+<tr id="field-row-{{ field.id }}">
+    <td><strong>{{ field.name }}</strong></td>
+
+    <td>{{ field.crop_type }}</td>
+
+    <td>{{ field.planting_date|date:"d M Y" }}</td>
+
+    <td>
+        <span style="font-size: 0.9em; color: #555;">{{ field.current_stage|title }}</span>
+    </td>
+    
+
+    <td>
+        <span class="badge 
+            {% if field.field_status == 'At Risk' %}badge-danger
+            {% elif field.field_status == 'Completed' %}badge-info
+            {% else %}badge-success{% endif %}">
+            {{ field.field_status }}
+        </span>
+    </td>
+
+    <td>
+        <div style="display: flex; align-items: center; gap: 5px;">
+            <span class="icon" style="font-size: 16px; color: #888;">person</span>
+            {{ field.assigned_agent.username|default:"Unassigned" }}
+        </div>
+    </td>
+    
+</tr>
+
+{% empty %}
+<tr>
+    <td colspan="6" style="text-align: center; padding: 40px; color: #888;">
+        <span class="icon" style="font-size: 48px; display: block; margin-bottom: 10px;">search_off</span>
+        No fields found matching your search.
+    </td>
+</tr>
+{% endfor %}

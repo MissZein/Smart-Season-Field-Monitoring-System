@@ -1,23 +1,52 @@
-<div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
-    <div style="background:white; padding:30px; border-radius:12px; width:400px;">
-        <h3>Create New Field Task</h3>
+<div class="modal-overlay" onclick="if(event.target==this) this.remove()">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 10px; color: #2e7d32;">
+                <span class="icon">potted_plant</span> New Field Task
+            </h3>
+            <span class="icon" style="cursor: pointer; color: #999;" onclick="this.closest('.modal-overlay').remove()">close</span>
+        </div>
+
         <form action="{% url 'save_new_field' %}" method="POST">
             {% csrf_token %}
-            <label>Field Name:</label><br>
-            <input type="text" name="name" required style="width:100%; margin-bottom:10px;"><br>
-            <label>Crop Type:</label><br>
-            <input type="text" name="crop" required style="width:100%; margin-bottom:10px;"><br>
-            <label>Planting Date:</label><br>
-            <input type="date" name="date" required style="width:100%; margin-bottom:10px;"><br>
-            <label>Assign to Agent:</label><br>
-            <select name="agent_id" style="width:100%; margin-bottom:20px;">
-                <option value="">-- Leave Unassigned --</option>
-                {% for agent in agents %}
-                    <option value="{{ agent.id }}">{{ agent.username }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn-save">Create Task</button>
-            <button type="button" onclick="this.parentElement.parentElement.parentElement.remove()">Cancel</button>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">FIELD NAME</label>
+                <input type="text" name="name" placeholder="e.g. North Sector A" required 
+                       style="width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; box-sizing: border-box; outline: none; transition: border-color 0.3s;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">CROP TYPE</label>
+                    <input type="text" name="crop" placeholder="Maize" required 
+                           style="width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">PLANTING DATE</label>
+                    <input type="date" name="date" required 
+                           style="width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; box-sizing: border-box; font-family: inherit;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #666; margin-bottom: 5px;">ASSIGN AGENT</label>
+                <select name="agent_id" style="width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 8px; background: white;">
+                    <option value="">-- Select an Agent --</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}">{{ agent.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 2; justify-content: center; padding: 14px;">
+                    <span class="icon">check_circle</span> Create Task
+                </button>
+                <button type="button" class="btn-secondary" style="flex: 1; justify-content: center;" onclick="this.closest('.modal-overlay').remove()">
+                    Cancel
+                </button>
+            </div>
         </form>
     </div>
 </div>

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from django.utils import timezone
+from datetime import timedelta
 
 class Field(models.Model):
     # Field Stages [cite: 33, 34]
@@ -28,18 +30,22 @@ class Field(models.Model):
 
     @property
     def field_status(self):
-        """
-        Computed status logic [cite: 40, 41]
-        - Completed: If stage is Harvested [cite: 44]
-        - At Risk: Based on custom logic (e.g., if 'Growing' takes too long) [cite: 43, 45]
-        - Active: Default state for growing fields [cite: 42]
-        """
-        if self.current_stage == 'HARVESTED':
-            return 'Completed' 
-        
-        # 'At Risk' logic: If the crop has been in the 'Growing' stage for over 100 days
+    # Calculate days since planting
         days_in_ground = (date.today() - self.planting_date).days
-        if self.current_stage == 'GROWING' and days_in_ground > 100:
+    
+    # 1. COMPLETED: Check for Harvested stage
+    # Using .upper() makes the check case-insensitive just in case
+        if self.current_stage.upper() in ['HARVESTED', 'HA']:
+            return 'Completed' 
+    
+    # 2. AT RISK: 
+    # Let's trigger this if it's been 'PLANTED' for > 14 days without moving to 'GROWING'
+    # OR if it's been 'GROWING' for > 60 days (more realistic than 100)
+        if self.current_stage.upper() in ['PLANTED', 'PL'] and days_in_ground > 14:
+            return 'At Risk'
+    
+        if self.current_stage.upper() in ['GROWING', 'GR'] and days_in_ground > 60:
             return 'At Risk' 
-            
-        return 'Active' 
+        
+    # 3. ACTIVE: Default for everything else
+        return 'Active'
