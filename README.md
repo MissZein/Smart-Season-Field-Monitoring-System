@@ -55,9 +55,5 @@ SYSTEM LOGIN PASSWORDS/ DEMO CREDENTIALS
 Admin1 - @87654321
 agent1,agent2,agent3,agent4 - @12345678
 
-🚀 Deployment (Recommended: Render or Heroku)
-Environment Variables: Set DEBUG=False and SECRET_KEY in your hosting provider's dashboard.
-
-Static Files: The project is configured for WhiteNoise to serve static assets efficiently.
-
-Database: While development uses SQLite, production is ready for PostgreSQL.# Smart-Season-Field-Monitoring-System
+🚀 Deployment Live link
+https://smart-season-ei7k.onrender.com
